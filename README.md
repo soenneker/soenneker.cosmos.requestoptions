@@ -5,21 +5,41 @@
 
 # Soenneker.Cosmos.RequestOptions
 
-Provides predefined request options for Cosmos DB operations.
+Small factory properties for common Azure Cosmos DB request-option configurations.
 
-## Install
+## Installation
 
 ```bash
 dotnet add package Soenneker.Cosmos.RequestOptions
 ```
 
-## What you get
+## Suppress write response content
 
-- `CosmosRequestOptions` — Provides predefined request options for Cosmos DB operations.
+```csharp
+ItemResponse<OrderDocument> response = await container.CreateItemAsync(
+    order,
+    new PartitionKey(order.PartitionKey),
+    CosmosRequestOptions.ExcludeResponse,
+    cancellationToken);
+```
 
-## API at a glance
+`ExcludeResponse` returns an `ItemRequestOptions` instance with `EnableContentResponseOnWrite = false`. This reduces response payload work when the caller does not need Cosmos to return the stored resource. The resulting `ItemResponse<T>.Resource` may be absent; keep using the document passed to the write when needed.
 
-| API | What it does | Result / important behavior |
-| --- | --- | --- |
-| `CosmosRequestOptions.ExcludeResponse` | Specifies an `ItemRequestOptions` instance that disables content response on write operations. | Specifies an `ItemRequestOptions` instance that disables content response on write operations. |
-| `CosmosRequestOptions.MaxItemCountOne` | Specifies a `QueryRequestOptions` instance that limits the maximum item count per query request to one. | Specifies a `QueryRequestOptions` instance that limits the maximum item count per query request to one. |
+## Request one item per query page
+
+```csharp
+using FeedIterator<OrderDocument> iterator = container.GetItemQueryIterator<OrderDocument>(
+    queryDefinition,
+    requestOptions: CosmosRequestOptions.MaxItemCountOne);
+```
+
+`MaxItemCountOne` returns a `QueryRequestOptions` instance with `MaxItemCount = 1`. It limits the requested page size; it does not add `TOP 1` to the query or guarantee that Cosmos will produce exactly one item on every page.
+
+Each property access returns a new mutable SDK options object, so callers can customize it without changing another request:
+
+```csharp
+QueryRequestOptions options = CosmosRequestOptions.MaxItemCountOne;
+options.PartitionKey = new PartitionKey("tenant-42");
+```
+
+No dependency-injection registration or application configuration is required.
