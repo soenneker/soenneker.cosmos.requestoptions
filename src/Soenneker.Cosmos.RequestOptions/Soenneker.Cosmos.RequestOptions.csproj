@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
+        <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
         <TargetFramework>net10.0</TargetFramework>
         <IsAotCompatible>true</IsAotCompatible>
         <Nullable>enable</Nullable>
@@ -46,6 +47,5 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.2" />
-        <!--sigh..-->
     </ItemGroup>
 </Project>
